@@ -1,0 +1,23 @@
+[package]
+name = "sdf-party"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+bevy = { version = "0.19.0", features = ["file_watcher", "wayland"] }
+
+
+# Enable max optimizations for dependencies, but not for our code:
+[profile.dev.package."*"]
+opt-level = 3
+
+# Enable only a small amount of optimization in debug mode
+[profile.dev]
+opt-level = 1
+
+[profile.release]
+lto = true
+opt-level = 3
+codegen-units = 1
+incremental = false
+debug = false

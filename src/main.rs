@@ -1,0 +1,62 @@
+//! A minimal example that outputs "hello world"
+
+use std::ops::Div;
+
+use bevy::{
+    core_pipeline::{
+        Core2dSystems,
+        fullscreen_material::{FullscreenMaterial, FullscreenMaterialPlugin},
+    },
+    ecs::{schedule::ScheduleConfigs, system::BoxedSystem},
+    prelude::*,
+    render::{extract_component::ExtractComponent, render_resource::ShaderType},
+};
+
+
+
+fn main() {
+    App::new()
+        .add_plugins((
+            DefaultPlugins,
+            FullscreenMaterialPlugin::<SdfPlayground>::default(),
+        ))
+        .add_systems(Startup, setup)
+        .add_systems(Update, update)
+        .run();
+}
+
+#[derive(ShaderType, Component, Default, ExtractComponent, Clone, Copy)]
+struct SdfPlayground {
+    pub time: f32,
+    pub screen: Vec2,
+    pub cursor_position: Vec3,
+}
+
+impl FullscreenMaterial for SdfPlayground {
+    fn fragment_shader() -> bevy::shader::ShaderRef {
+        "shaders/sdf_shader.wgsl".into()
+    }
+    fn schedule() -> impl bevy::ecs::schedule::ScheduleLabel + Clone {
+        bevy::core_pipeline::Core2d
+    }
+    fn schedule_configs(system: ScheduleConfigs<BoxedSystem>) -> ScheduleConfigs<BoxedSystem> {
+        system.in_set(Core2dSystems::MainPass)
+    }
+}
+
+fn setup(mut commands: Commands) {
+    commands.spawn((Camera2d, SdfPlayground::default()));
+}
+
+fn update(time: Res<Time>, windows_query: Query<&Window>, mut sdf_playground_query: Query<&mut SdfPlayground>) {
+    let time = time.elapsed_secs_wrapped();    
+    let window = windows_query.single().unwrap();
+    let size = Vec2::new(window.width(), window.height());
+    let maybe_cursor_position = window.cursor_position();
+    let cursor_position = maybe_cursor_position.unwrap_or_default();
+    for mut sdf_material in sdf_playground_query.iter_mut() {
+        sdf_material.time = time;
+        sdf_material.screen = size;
+        sdf_material.cursor_position = cursor_position.div(size).extend(if window.cursor_position().is_some() { 1. } else { 0. });
+    }
+}
