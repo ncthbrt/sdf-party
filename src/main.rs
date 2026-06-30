@@ -3,13 +3,9 @@
 use std::ops::Div;
 
 use bevy::{
-    core_pipeline::{
-        Core2dSystems,
-        fullscreen_material::{FullscreenMaterial, FullscreenMaterialPlugin},
-    },
-    ecs::{schedule::ScheduleConfigs, system::BoxedSystem},
-    prelude::*,
-    render::{extract_component::ExtractComponent, render_resource::ShaderType},
+    camera::Hdr, core_pipeline::{
+        Core2dSystems, fullscreen_material::{FullscreenMaterial, FullscreenMaterialPlugin}, tonemapping::Tonemapping,
+    }, ecs::{schedule::ScheduleConfigs, system::BoxedSystem}, post_process::bloom::Bloom, prelude::*, render::{extract_component::ExtractComponent, render_resource::ShaderType, view::ColorGrading},
 };
 
 
@@ -45,7 +41,13 @@ impl FullscreenMaterial for SdfPlayground {
 }
 
 fn setup(mut commands: Commands) {
-    commands.spawn((Camera2d, SdfPlayground::default()));
+    commands.spawn((
+        Camera2d, 
+        SdfPlayground::default(),
+        Hdr,
+        Bloom::OLD_SCHOOL,
+        Tonemapping::TonyMcMapface
+    ));
 }
 
 fn update(time: Res<Time>, windows_query: Query<&Window>, mut sdf_playground_query: Query<&mut SdfPlayground>) {

@@ -422,42 +422,10 @@ fn segment(p: vec2f, a: vec2f, b: vec2f) -> f32 {
     return length(pa - ba*h);
 }
 
-fn ellipse(po: vec2f, abo: vec2f) -> f32 {
-    var p: vec2f = abs(po);
-    var ab = abo;
-    if p.x > p.y  {
-        p=p.yx;
-        ab=ab.yx;
-    }
-    let l: f32 = ab.y*ab.y - ab.x*ab.x;
-    let m: f32 = ab.x*p.x/l;      
-    let m2: f32 = m*m; 
-    let n: f32 = ab.y*p.y/l;
-    let n2: f32 = n*n; 
-    let c: f32 = (m2+n2-1.0)/3.0;
-    let c3: f32 = c*c*c;
-    let q: f32 = c3 + m2*n2*2.0;
-    let d: f32 = c3 + m2*n2;
-    let g: f32 = m + m*n2;
-    var co: f32 = 0;
-    if d<0.0  {
-        let h: f32 = acos(q/c3)/3.0;
-        let s: f32 = cos(h);
-        let t = sin(h)*sqrt(3.0);
-        let rx = sqrt( -c*(s + t + 2.0) + m2 );
-        let ry = sqrt( -c*(s - t + 2.0) + m2 );
-        co = (ry+sign(l)*rx+abs(g)/(rx*ry)- m)/2.0;
-    } else {
-        let h = 2.0*m*n*sqrt( d );
-        let s = sign(q+h)*pow(abs(q+h), 1.0/3.0);
-        let u = sign(q-h)*pow(abs(q-h), 1.0/3.0);
-        let rx = -s - u - c*4.0 + 2.0*m2;
-        let ry = (s - u)*sqrt(3.0);
-        let rm = sqrt( rx*rx + ry*ry );
-        co = (ry/sqrt(rm-rx)+2.0*g/rm-m)/2.0;
-    }
-    let r: vec2f = ab * vec2f(co, sqrt(1.0-co*co));
-    return length(r-p) * sign(p.y-r.y);
+fn ellipse(p: vec2f, ab: vec2f) -> f32 {
+    let k1 = length(p / ab);
+    let k2 = length(p / (ab*ab));
+    return k1*(k1-1.0)/k2;   
 }
 
 fn debug_colors(d: f32) -> vec4f {
@@ -523,16 +491,29 @@ fn shape_edge(d: f32) -> f32 {
 }
 
 fn alpha_blend(a: vec4f, b: vec4f) -> vec4f {
-    return mix(b, a, a.a);
+    return mix(b, a, saturate(a.a));
 }
 
-fn shade(d: f32, c: vec4f) -> vec4f {    
-    return mix(vec4f(0), c, step(d, 0.0));
+fn shade(d: f32, c: vec4f) -> vec4f {
+    let f = fwidth(d);
+    let s_f = smoothstep(f, -f, d);
+    return mix(vec4f(0), c, s_f);
 }
+
 
 // End SDF
 
 // Begin COLOR_PALETTE
+const ink_black: vec4f = vec4f(0 / 255., 4 / 255., 3 / 255., 1);
+const dark_teal: vec4f = vec4f(0 / 255., 95 / 255., 115 / 255., 1);
+const dark_cyan: vec4f = vec4f(10 / 255., 147 / 255., 150 / 255., 1);
+const pearl_aqua: vec4f = vec4f(148 / 255., 210 / 255., 189 / 255., 1);
+const vanilla_custard: vec4f = vec4f(233 / 255., 216 / 255., 166 / 255., 1);
+const golden_orange: vec4f = vec4f(238 / 255., 155 / 255., 0 / 255., 1);
+const burnt_caramel: vec4f = vec4f(202 / 255., 103 / 255., 2 / 255., 1);
+const rusty_spice: vec4f = vec4f(187 / 255., 62 / 255., 3 / 255., 1);
+const oxidized_iron: vec4f = vec4f(174 / 255., 32 / 255., 18 / 255., 1);
+const brown_red: vec4f = vec4f(155 / 255., 34 / 255., 38 / 255., 1);
 
 // End COLOR_PALETTE
 
@@ -575,16 +556,18 @@ fn fragment(in: FullscreenVertexOutput) -> @location(0) vec4<f32> {
     d = rect(uv, vec2f(0.4, 0.3));
     d = segment(uv, vec2f(0, 0), vec2f(0.5, 0.5));
     let t = mix(0.2, 0.4, abs(sin(settings.time)));
-    d = ellipse(uv, vec2f(0.5, t)); 
+    d = ellipse(uv, vec2f(0.5, t));
 
     // d = grow(rect(uv, vec2f(0.2, 0.1)), 0.1);
     
     let cursor = circle(uv - cursor_position, 0.1);
     d = mix(d, smooth_merge(d, cursor, 0.1), has_cursor);
-    let line = shade(grow(shape_edge(d), 0.01), vec4f(0, 0, 0, 1));
-    let fill = shade(d, vec4f(0.3, 0.0, 0.8, 1.0));
+    let line_d = grow(shape_edge(d), 0.004);
+    var line = shade(line_d, ink_black);
     
-    let background = vec4f(0.7, 0.8, 0.95, 1.0);
-    return alpha_blend(alpha_blend(line, fill), background);    
+    let fill = shade(d, golden_orange);
+    let foreground = alpha_blend(line, fill);    
+    let background = rusty_spice;
+    return alpha_blend(1.4*foreground, background);
     // return debug_colors(d);    
 }
