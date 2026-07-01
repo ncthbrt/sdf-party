@@ -1,3 +1,4 @@
+// import super::sdfs::{rect, circle, segment, ellipse, shade, grow, alpha_blend, smooth_merge, shape_edge};
 // Begin NOISE
 //  MIT License. © Ian McEwan, Stefan Gustavson, Munrocket, Johan Helsing
 
@@ -402,8 +403,7 @@ fn worley_2d(pos: vec2<f32>, jitter: f32) -> vec2<f32> {
     return sqrt(d1.xy);
 }
 // End NOISE
-
-// Begin SDF
+// Begin SDFs
 fn circle(p: vec2f, r: f32) -> f32 
 {
     return length(p)-r;
@@ -499,9 +499,7 @@ fn shade(d: f32, c: vec4f) -> vec4f {
     let s_f = smoothstep(f, -f, d);
     return mix(vec4f(0), c, s_f);
 }
-
-
-// End SDF
+// End SDFs
 
 // Begin COLOR_PALETTE
 const ink_black: vec4f = vec4f(0 / 255., 4 / 255., 3 / 255., 1);
@@ -566,8 +564,10 @@ fn fragment(in: FullscreenVertexOutput) -> @location(0) vec4<f32> {
     var line = shade(line_d, ink_black);
     
     let fill = shade(d, golden_orange);
-    let foreground = alpha_blend(line, fill);    
-    let background = rusty_spice;
+    let foreground = alpha_blend(line, fill);
+    
+    let background = oxidized_iron;
     return alpha_blend(1.4*foreground, background);
-    // return debug_colors(d);    
+    
+    // return debug_colors(shape_edge(fbm_simplex_2d(0.1*uv, 4, 4, 1)));
 }

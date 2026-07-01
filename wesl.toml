@@ -1,0 +1,20 @@
+# Version of WESL used in this project.
+edition = "2026_pre"
+
+# Optional, can be auto-inferred from the existence of a package manager file.
+# Inclusion of this field is encouraged.
+package-manager = "cargo"
+
+
+# Where are the shaders located. This is the path of `package::`.
+root = "assets/shaders/main.wesl"
+
+include = [ "**/*.wesl", "**/*.wgsl" ]
+
+# Optional.
+# Some projects have large folders that we shouldn't react to.
+exclude = []
+
+# # Lists all used dependencies
+dependencies = {}
+

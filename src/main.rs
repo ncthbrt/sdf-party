@@ -1,6 +1,6 @@
 //! A minimal example that outputs "hello world"
 
-use std::ops::Div;
+use std::{mem::forget, ops::Div};
 
 use bevy::{
     camera::Hdr, core_pipeline::{
@@ -14,6 +14,7 @@ fn main() {
     App::new()
         .add_plugins((
             DefaultPlugins,
+            WeslDependenciesPlugin,
             FullscreenMaterialPlugin::<SdfPlayground>::default(),
         ))
         .add_systems(Startup, setup)
@@ -30,7 +31,7 @@ struct SdfPlayground {
 
 impl FullscreenMaterial for SdfPlayground {
     fn fragment_shader() -> bevy::shader::ShaderRef {
-        "shaders/sdf_shader.wgsl".into()
+        "shaders/main.wesl".into()
     }
     fn schedule() -> impl bevy::ecs::schedule::ScheduleLabel + Clone {
         bevy::core_pipeline::Core2d
@@ -39,6 +40,20 @@ impl FullscreenMaterial for SdfPlayground {
         system.in_set(Core2dSystems::MainPass)
     }
 }
+
+struct WeslDependenciesPlugin;
+
+
+impl Plugin for WeslDependenciesPlugin {
+    fn build(&self, app: &mut App) {
+        let asset_server = app
+            .world_mut()
+            .resource_mut::<AssetServer>();
+        std::mem::forget(asset_server.load::<Shader>("shaders/noise.wesl"));
+        std::mem::forget(asset_server.load::<Shader>("shaders/sdfs.wesl"));            
+    }
+}
+
 
 fn setup(mut commands: Commands) {
     commands.spawn((
