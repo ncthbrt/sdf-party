@@ -1,4 +1,4 @@
-// import super::sdfs::{rect, circle, segment, ellipse, shade, grow, alpha_blend, smooth_merge, shape_edge};
+import super::sdfs::{rect, circle, segment, ellipse, shade, grow, alpha_blend, smooth_merge, shape_edge};
 // Begin NOISE
 //  MIT License. © Ian McEwan, Stefan Gustavson, Munrocket, Johan Helsing
 
